@@ -1,0 +1,26 @@
+# Three services, one deploy: database -> api -> web.
+# Change `project` to something unique: it becomes your project's slug.
+project: starter
+
+services:
+  database:
+    image: postgres:16
+    port: 5432
+    internal: true                      # cluster DNS only, no public URL
+    persist: /var/lib/postgresql/data   # keep data across restarts
+    # POSTGRES_PASSWORD is generated for you on the first deploy (Projects → Secrets).
+
+  api:
+    build: ./apps/api
+    port: 8080
+    internal: true
+    depends_on: [database]
+    env:
+      DATABASE_URL: "{{ database.url }}"
+
+  web:
+    build: ./apps/web
+    port: 3000
+    depends_on: [api]
+    env:
+      API_URL: "{{ api.url }}"
